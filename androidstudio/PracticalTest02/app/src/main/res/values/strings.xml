@@ -6,9 +6,9 @@
     <string name="client">CLIENT</string>
     <string name="client_address">Address</string>
     <string name="client_port">Port</string>
-    <string name="city">City</string>
+    <string name="city">Alarm command</string>
     <string name="information_type">Information Type</string>
-    <string name="get_weather_forecast">Get Weather Forecast</string>
+    <string name="get_weather_forecast">Send Server Request</string>
     <string name="action_settings">Settings</string>
     <string-array name="information_types">
         <item>temperature</item>

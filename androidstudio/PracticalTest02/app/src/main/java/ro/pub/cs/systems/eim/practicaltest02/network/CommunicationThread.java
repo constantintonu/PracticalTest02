@@ -23,12 +23,14 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
 import ro.pub.cs.systems.eim.practicaltest02.general.Constants;
 import ro.pub.cs.systems.eim.practicaltest02.general.Utilities;
 import ro.pub.cs.systems.eim.practicaltest02.model.WeatherForecastInformation;
+import ro.pub.cs.systems.eim.practicaltest02.model.AlarmModel;
 
 public class CommunicationThread extends Thread {
 
@@ -49,13 +51,27 @@ public class CommunicationThread extends Thread {
                 if (bufferedReader != null && printWriter != null) {
                     Log.i(Constants.TAG, "[COMMUNICATION THREAD] Waiting for parameters from client (city / information type)!");
                     String city = bufferedReader.readLine();
-                    String informationType = bufferedReader.readLine();
+                    System.out.println("Received from client: " + city);
+                    String informationType = "all";//bufferedReader.readLine();
                     HashMap<String, WeatherForecastInformation> data = serverThread.getData();
                     WeatherForecastInformation weatherForecastInformation = null;
-                    if (city != null && !city.isEmpty() && informationType != null && !informationType.isEmpty()) {
+
+
+                    if (city != null && !city.isEmpty()) {
+                        String result = "none";
                         if (data.containsKey(city)) {
                             Log.i(Constants.TAG, "[COMMUNICATION THREAD] Getting the information from the cache...");
-                            weatherForecastInformation = data.get(city);
+                            //weatherForecastInformation = data.get(city);
+                            AlarmModel alarm = serverThread.getAlarms().get(serverThread.getClientIp());
+                            result = alarm.getStatus();
+                            
+                            if(city.startsWith("poll"))
+                                result = "inactive";
+                            printWriter.println(result);
+                            printWriter.flush();
+
+                            return;
+
                         } else {
                             Log.i(Constants.TAG, "[COMMUNICATION THREAD] Getting the information from the webservice...");
                             HttpClient httpClient = new DefaultHttpClient();
@@ -103,7 +119,7 @@ public class CommunicationThread extends Thread {
                             }
                         }
 
-                        if (weatherForecastInformation != null) {
+                       /* if (weatherForecastInformation != null) {
                             String result = null;
                             if (Constants.ALL.equals(informationType)) {
                                 result = weatherForecastInformation.toString();
@@ -124,7 +140,10 @@ public class CommunicationThread extends Thread {
                             printWriter.flush();
                         } else {
                             Log.e(Constants.TAG, "[COMMUNICATION THREAD] Weather Forecast information is null!");
-                        }
+                        }*/
+
+                        printWriter.println(result);
+                        printWriter.flush();
 
                     } else {
                         Log.e(Constants.TAG, "[COMMUNICATION THREAD] Error receiving parameters from client (city / information type)!");

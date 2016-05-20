@@ -11,6 +11,7 @@ import java.util.HashMap;
 
 import ro.pub.cs.systems.eim.practicaltest02.general.Constants;
 import ro.pub.cs.systems.eim.practicaltest02.model.WeatherForecastInformation;
+import ro.pub.cs.systems.eim.practicaltest02.model.AlarmModel;
 
 public class ServerThread extends Thread {
 
@@ -18,6 +19,8 @@ public class ServerThread extends Thread {
     private ServerSocket serverSocket = null;
 
     private HashMap<String, WeatherForecastInformation> data = null;
+    private HashMap<String, AlarmModel> alarms = null;
+    private String clientIp = "";
 
     public ServerThread(int port) {
         this.port = port;
@@ -30,6 +33,7 @@ public class ServerThread extends Thread {
             }
         }
         this.data = new HashMap<>();
+        this.alarms = new HashMap<>();
     }
 
     public void setPort(int port) {
@@ -52,8 +56,16 @@ public class ServerThread extends Thread {
         this.data.put(city, weatherForecastInformation);
     }
 
+    public synchronized void setAlarm(String ip, AlarmModel alarm) {
+        this.alarms.put(ip, alarm);
+    }
+
     public synchronized HashMap<String, WeatherForecastInformation> getData() {
         return data;
+    }
+
+    public synchronized String getClientIp() {
+        return this.clientIp;
     }
 
     @Override
@@ -63,6 +75,8 @@ public class ServerThread extends Thread {
                 Log.i(Constants.TAG, "[SERVER] Waiting for a connection...");
                 Socket socket = serverSocket.accept();
                 Log.i(Constants.TAG, "[SERVER] A connection request was received from " + socket.getInetAddress() + ":" + socket.getLocalPort());
+                clientIp = socket.getInetAddress().toString();
+                alarms.put(clientIp, new AlarmModel(23,14,"23,14", "inactive"));
                 CommunicationThread communicationThread = new CommunicationThread(this, socket);
                 communicationThread.start();
             }
@@ -93,4 +107,7 @@ public class ServerThread extends Thread {
         }
     }
 
+    public HashMap<String, AlarmModel> getAlarms() {
+        return alarms;
+    }
 }
